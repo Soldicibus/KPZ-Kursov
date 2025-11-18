@@ -1,81 +1,153 @@
 
-<h1>Workshop 5 — Розробка API для шкільної бази даних</h1>
+<h1>Workshop 6 — Впровадження сервісного шару, валідації та DTO</h1>
 
-<h2>1. Короткий опис реалізованих сутностей та зв’язків</h2>
-<p>
-  У межах завдання було створено реляційну базу даних школи, яка містить основні сутності:
-  <b>Class</b>, <b>Student</b>, <b>Parent</b>, <b>Teacher</b>, <b>Subject</b>,
-  <b>Homework</b>, <b>Timetable</b>, <b>Journal</b>, <b>StudentParent</b>.
-</p>
+Middleware відповідає за перевірку та валідацію даних, що надходять у запиті. Він відсікає некоректні або небезпечні дані ще до їх обробки. Це дозволяє централізовано реалізувати правила безпеки та узгодженості.  
 
-<h3>Основні зв’язки між таблицями</h3>
-<table>
-  <tr><th>Зв’язок</th><th>Опис</th></tr>
-  <tr>
-    <td><b>Class — Teacher</b></td>
-    <td>Кожен клас має одного класного керівника (<code>class_Teacher → teacher_id</code>).</td>
-  </tr>
-  <tr>
-    <td><b>Student — Class</b></td>
-    <td>Кожен учень належить до певного класу (<code>student_Class → class_name</code>).</td>
-  </tr>
-  <tr>
-    <td><b>Homework — Subject, Class</b></td>
-    <td>Домашнє завдання належить до предмету та класу (<code>homework_Subject</code>, <code>homework_Class</code>).</td>
-  </tr>
-  <tr>
-    <td><b>Timetable — Class, Subject, Teacher</b></td>
-    <td>Розклад пов’язує клас, предмет і викладача.</td>
-  </tr>
-  <tr>
-    <td><b>Journal — Student, Timetable</b></td>
-    <td>Журнал відвідувань і оцінок містить записи про учнів на конкретних уроках.</td>
-  </tr>
-  <tr>
-    <td><b>StudentParent — Student, Parent</b></td>
-    <td>Зв’язок «багато-до-багатьох» між учнями та батьками.</td>
-  </tr>
-</table>
+Controller приймає запит від клієнта та визначає, які сервіси потрібно викликати. Він координує взаємодію між різними шарами системи. Також формує відповідь у потрібному форматі та повертає її клієнту.  
 
-<h2>2. Реалізовані API-ендпоінти</h2>
-<p>Для кожної таблиці реалізовано стандартні REST-ендпоінти:</p>
+Service містить основні правила та алгоритми роботи системи. Він виконує обробку даних відповідно до вимог бізнесу. Цей шар ізолює бізнес-логіку від деталей збереження чи представлення даних.  
 
-<div class="endpoint"><b>GET</b> /api/{entity} — отримати всі записи</div>
-<div class="endpoint"><b>GET</b> /api/{entity}/{id} — отримати запис за ID</div>
-<div class="endpoint"><b>POST</b> /api/{entity} — створити новий запис</div>
-<div class="endpoint"><b>PUT</b> /api/{entity}/{id} — оновити існуючий запис</div>
-<div class="endpoint"><b>DELETE</b> /api/{entity}/{id} — видалити запис</div>
+Repository відповідає за доступ до джерел даних, таких як база даних чи зовнішні API. Він інкапсулює операції читання та запису, щоб інші шари не залежали від конкретної реалізації. Це забезпечує гнучкість і спрощує підтримку системи.
 
-<h3>Приклади реалізованих ендпоінтів</h3>
-<ul>
-  <li><code>GET /students</code> — отримання списку учнів</li>
-  <li><code>GET /students/{id}</code> — отримання інформації про конкретного учня</li>
-  <li><code>POST /students</code> — створення нового учня</li>
-  <li><code>PUT /students/{id}</code> — оновлення даних учня</li>
-  <li><code>DELETE /students/{id}</code> — видалення учня</li>
-  <li><code>GET /journal</code> — отримання всіх записів журналу</li>
-  <li><code>POST /journal</code> — створення нового запису журналу</li>
-  <li><code>GET /journal/{id}</code> — перегляд конкретного запису</li>
-</ul>
+<h1>Прклад DTO, Сервісу та валідатора</h1>
+
+<h2>SubjectDTO</h2>
+// src/dto/SubjectResponseDTO.ts
+import { Subject } from "../orm/entities/Subject/Subject";
+
+export class SubjectResponseDTO {
+  name: string;
+  description?: string;
+
+  constructor(subject: Subject) {
+    this.name = subject.subject_name;
+    this.description = subject.subject_desc;
+  }
+}
+<br>
+
+<h2>SubjectService</h2>
+  import { AppDataSource } from "database/data-source";
+  import { Subject } from "../orm/entities/Subject/Subject";
+  
+  export class SubjectService{
+      private subjectRepo = AppDataSource.getRepository(Subject);
+  
+      async createSubject(data: {
+          subject_name: string;
+          subject_desc?: string;
+      }) {
+          const { subject_name, subject_desc } = data;
+  
+          if (!subject_name) {
+              throw new Error("Missing required field: subject_name");
+          }
+  
+          const subjectEntity = this.subjectRepo.create({
+              subject_name,
+              subject_desc,
+          });
+  
+          await this.subjectRepo.save(subjectEntity);
+          return subjectEntity;
+      }
+  
+      async getAllSubjects() {
+          return await this.subjectRepo.find();
+      }
+  
+      async getSubjectById(subjectName: string) {
+          const subjectEntity = await this.subjectRepo.findOne({ 
+              where: { subject_name : subjectName }, 
+          });
+          if (!subjectEntity) throw new Error(`Subject with name ${subjectName} not found`);
+          return subjectEntity;
+      }
+  
+      async updateSubject(
+          subjectName: string,
+          data: {
+              subject_name?: string;
+              subject_desc?: string;
+          }
+      ) {
+          const subjectEntity = await this.subjectRepo.findOne({ where: { subject_name: subjectName }});
+          if (!subjectEntity) throw new Error(`Subject with name ${subjectName} not found`);
+  
+          Object.assign(subjectEntity, data);
+          await this.subjectRepo.save(subjectEntity);
+          return subjectEntity;
+      }
+  
+      async deleteSubject(subjectName: string) {
+          const subjectEntity = await this.subjectRepo.findOne({ where: { subject_name: subjectName }});
+          if (!subjectEntity) throw new Error(`Subject with name ${subjectName} not found`);
+          await this.subjectRepo.remove(subjectEntity);
+          return subjectEntity;
+      }
+  }
+<br>
+
+<h2>validation/subject/validatorCreate.ts</h2>
+import { Request, Response, NextFunction } from 'express';
+import { AppDataSource } from "database/data-source";
+
+import { Subject } from '../../../orm/entities/Subject/Subject';
+import { CustomError } from 'utils/response/custom-error/CustomError';
+import { ErrorValidation } from 'utils/response/custom-error/types';
+
+export const validatorCreate = async (req: Request, res: Response, next: NextFunction) => {
+  let { subject_name, subject_desc } = req.body;
+
+  subject_name = (subject_name || "").trim();
+  subject_desc = (subject_desc || "").trim();
+
+  const errorsValidation: ErrorValidation[] = [];
+  const subjectRepository = AppDataSource.getRepository(Subject);
+
+  subject_name = !subject_name ? '' : subject_name;
+  subject_desc = !subject_desc ? '' : subject_desc;
+
+  if (subject_name.trim() === '') {
+    errorsValidation.push({ subject_name: 'Subject name is required' });
+  } else if (subject_name.length > 30) {
+    errorsValidation.push({ subject_name: 'Subject name must be 30 characters or less' });
+  }
+
+  if (subject_desc && subject_desc.length > 0) {
+    const descExists = await subjectRepository.findOne({ where: { subject_desc } });
+    if (descExists) {
+      errorsValidation.push({ subject_desc: 'Subject description must be unique' });
+    }
+  }
+
+  if (subject_name) {
+    const exists = await subjectRepository.findOne({ where: { subject_name } });
+    if (exists) {
+      errorsValidation.push({ subject_name: `Subject with name '${subject_name}' already exists` });
+    }
+  }
+
+  if (errorsValidation.length !== 0) {
+    const customError = new CustomError(400, 'Validation', 'Create subject validation error', null, null, errorsValidation);
+    return next(customError);
+  }
+  return next();
+};
+
+export default validatorCreate;
+<br>
 
 <h2>3. Демонстрація роботи API (Postman)</h2>
-<p>Нижче наведено скріншоти із Postman, які підтверджують коректну роботу запитів до API (отримання, створення, оновлення та видалення даних).</p>
+<p>Нижче наведено скріншоти із Postman</p>
 
-<h3>Об’єкт Student</h3>
+<h3>DTO GET</h3>
 <div class="gallery">
-  <img src="Photos/get_all_students.png" alt="GET all students">
-  <img src="Photos/get_specific_student.png" alt="GET specific student">
-  <img src="Photos/post_student.png" alt="POST student">
-  <img src="Photos/put_student.png" alt="PUT student">
-  <img src="Photos/delete_student.png" alt="DELETE student">
+  <img src="Photos/1.png" alt="GET DTO Subject">
 </div>
 
-<h3>Об’єкт Journal</h3>
+<h3>Validation error and success</h3>
 <div class="gallery">
-  <img src="Photos/get_all_journal.png" alt="GET all journal">
-  <img src="Photos/get_specific_journal.png" alt="GET specific journal">
-  <img src="Photos/post_journal.png" alt="POST journal">
-  <img src="Photos/put_journal.png" alt="PUT journal">
-  <img src="Photos/delete_journal.png" alt="DELETE journal">
-  <img src="Photos/delete_journal_check.png" alt="DELETE journal confirmation">
+  <img src="Photos/2.png" alt="POST Subject fail">
+  <img src="Photos/3.png" alt="POST Subject success">
 </div>

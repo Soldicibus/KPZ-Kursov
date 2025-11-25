@@ -7,6 +7,6 @@
 ## ПР-5 "Розширення бекенд-додатку власними сутностями та реалізація REST API": <a href="https://github.com/Soldicibus/KPZ-Kursov/blob/main/5%20work/workshop_5.md">Посилання</a> <br>
 ## ПР-6 "Впровадження сервісного шару, валідації та DTO": <a href="https://github.com/Soldicibus/KPZ-Kursov/blob/main/6%20work/workshop_6.md">Посилання</a>
 ## ПР-7 "Дослідження бойлерплейту фронтенд-додатку" <br>
-## ПР-8-9 "Full-stack інтеграція: розробка UI на базі професійного бойлерплейту": <a href="https://github.com/Soldicibus/KPZ-Kursov/blob/main/8-9%20work/workshop_8.md">Посилання</a>
+## ПР-8-9 "Full-stack інтеграція: розробка UI на базі професійного бойлерплейту": <a href="https://github.com/Soldicibus/KPZ-Kursov/blob/main/8-9%20work/workshop_8.md">Посилання</a> <br>
 ## ПР-10 "Робота з Dockerfile та Docker Compose" <a href="https://github.com/Soldicibus/KPZ-Kursov/blob/main/10%20work/workshop_10.md">Посилання</a>
-## ПР-11 "Неперервна інтеграція" <a href="https://github.com/Soldicibus/skills-hello-github-actions">Посилання на виконаний Hello GIthub Actions</a> <a href="https://github.com/Soldicibus/skills-publish-packages">Посилання на виконаний Sills Publick Packages</a> <a href="https://github.com/Soldicibus/custom-docker-frontend">Посилання на мій репозиторій з Workflow з Packages</a>
+## ПР-11 "Неперервна інтеграція" <a href="https://github.com/Soldicibus/skills-hello-github-actions">Посилання на виконаний Hello GIthub Actions</a> <br> <a href="https://github.com/Soldicibus/skills-publish-packages">Посилання на виконаний Sills Publick Packages</a> <br> <a href="https://github.com/Soldicibus/custom-docker-frontend">Посилання на мій репозиторій з Workflow з Packages</a>

@@ -8,3 +8,4 @@
 ## ПР-6 "Впровадження сервісного шару, валідації та DTO": <a href="https://github.com/Soldicibus/KPZ-Kursov/blob/main/6%20work/workshop_6.md">Посилання</a>
 ## ПР-7 "Дослідження бойлерплейту фронтенд-додатку" <br>
 ## ПР-8-9 "Full-stack інтеграція: розробка UI на базі професійного бойлерплейту": <a href="https://github.com/Soldicibus/KPZ-Kursov/blob/main/8-9%20work/workshop_8.md">Посилання</a>
+## ПР-10 "Робота з Dockerfile та Docker Compose" <a href="https://github.com/Soldicibus/KPZ-Kursov/blob/main/10%20work/workshop_10.md">Посилання</a>

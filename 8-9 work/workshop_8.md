@@ -1,81 +1,122 @@
 
-<h1>Workshop 5 — Розробка API для шкільної бази даних</h1>
+<h1>Workshop 8-9 — Full-stack інтеграція: розробка UI на базі професійного бойлерплейту</h1>
 
-<h2>1. Короткий опис реалізованих сутностей та зв’язків</h2>
+<h2>Короткий опис реалізованих функцій</h2>
 <p>
-  У межах завдання було створено реляційну базу даних школи, яка містить основні сутності:
-  <b>Class</b>, <b>Student</b>, <b>Parent</b>, <b>Teacher</b>, <b>Subject</b>,
-  <b>Homework</b>, <b>Timetable</b>, <b>Journal</b>, <b>StudentParent</b>.
+  У межах завдання було створено front-end додаток до вже існуючого back-end, реалізовані CRUD запити для основних сутностей, використовуючи всі вимоги від завдання.
 </p>
 
-<h3>Основні зв’язки між таблицями</h3>
-<table>
-  <tr><th>Зв’язок</th><th>Опис</th></tr>
-  <tr>
-    <td><b>Class — Teacher</b></td>
-    <td>Кожен клас має одного класного керівника (<code>class_Teacher → teacher_id</code>).</td>
-  </tr>
-  <tr>
-    <td><b>Student — Class</b></td>
-    <td>Кожен учень належить до певного класу (<code>student_Class → class_name</code>).</td>
-  </tr>
-  <tr>
-    <td><b>Homework — Subject, Class</b></td>
-    <td>Домашнє завдання належить до предмету та класу (<code>homework_Subject</code>, <code>homework_Class</code>).</td>
-  </tr>
-  <tr>
-    <td><b>Timetable — Class, Subject, Teacher</b></td>
-    <td>Розклад пов’язує клас, предмет і викладача.</td>
-  </tr>
-  <tr>
-    <td><b>Journal — Student, Timetable</b></td>
-    <td>Журнал відвідувань і оцінок містить записи про учнів на конкретних уроках.</td>
-  </tr>
-  <tr>
-    <td><b>StudentParent — Student, Parent</b></td>
-    <td>Зв’язок «багато-до-багатьох» між учнями та батьками.</td>
-  </tr>
-</table>
+<h2>Приклади коду:</h2>
 
-<h2>2. Реалізовані API-ендпоінти</h2>
-<p>Для кожної таблиці реалізовано стандартні REST-ендпоінти:</p>
+Axios:
+<br>
+import axios from 'axios';
 
-<div class="endpoint"><b>GET</b> /api/{entity} — отримати всі записи</div>
-<div class="endpoint"><b>GET</b> /api/{entity}/{id} — отримати запис за ID</div>
-<div class="endpoint"><b>POST</b> /api/{entity} — створити новий запис</div>
-<div class="endpoint"><b>PUT</b> /api/{entity}/{id} — оновити існуючий запис</div>
-<div class="endpoint"><b>DELETE</b> /api/{entity}/{id} — видалити запис</div>
+const apiClient = axios.create({
+	baseURL: import.meta.env.VITE_API_BASE_URL,
+	headers: {
+		'Content-Type': 'application/json',
+	},
+});
 
-<h3>Приклади реалізованих ендпоінтів</h3>
-<ul>
-  <li><code>GET /students</code> — отримання списку учнів</li>
-  <li><code>GET /students/{id}</code> — отримання інформації про конкретного учня</li>
-  <li><code>POST /students</code> — створення нового учня</li>
-  <li><code>PUT /students/{id}</code> — оновлення даних учня</li>
-  <li><code>DELETE /students/{id}</code> — видалення учня</li>
-  <li><code>GET /journal</code> — отримання всіх записів журналу</li>
-  <li><code>POST /journal</code> — створення нового запису журналу</li>
-  <li><code>GET /journal/{id}</code> — перегляд конкретного запису</li>
-</ul>
+const token = import.meta.env.VITE_API_AUTH_TOKEN;
+if (token) {
+	apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+}
 
-<h2>3. Демонстрація роботи API (Postman)</h2>
-<p>Нижче наведено скріншоти із Postman, які підтверджують коректну роботу запитів до API (отримання, створення, оновлення та видалення даних).</p>
+apiClient.interceptors.response.use(
+	(response) => response,
+	(error) => {
+		console.error('API Error:', error.response?.data || error.message);
+		return Promise.reject(error);
+	}
+);
+export default apiClient;
+<br>
+Хуки на прикладі Timetable:
+<br>
+// ---------- ХУКИ REACT QUERY ----------
 
-<h3>Об’єкт Student</h3>
+// Хук для отримання всього розкладу
+export const useTimetable = () =>
+  useQuery<Timetable[], Error>({ queryKey: ['timetable'], queryFn: getTimetable });
+
+// Хук для отримання запису розкладу за ідентифікатором
+export const useTimetableById = (id: number) => {
+  return useQuery<Timetable, Error>({ queryKey: ['timetable', id], queryFn: () => getTimetableById(id), enabled: !!id });
+};
+
+// Хук для створення запису розкладу  
+export const useCreateTimetableEntry = (): UseMutationResult<Timetable, unknown, TimetableInput, unknown> => {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  return useMutation<Timetable, unknown, TimetableInput, unknown>({
+    mutationFn: createTimetableEntry,
+    onSuccess: async (created) => {
+      await queryClient.invalidateQueries({ queryKey: ['timetable'] });
+      if (created) {
+        // navigate to the newly created timetable entry detail
+        await navigate({ to: `/timetable/${created.time_id}` as string });
+      }
+    },
+  });
+};
+
+// Хук для оновлення запису розкладу
+export const useUpdateTimetableEntry = (): UseMutationResult<Timetable, unknown, { id: number; data: Partial<TimetableInput>; }, unknown> => {
+  const queryClient = useQueryClient();
+
+  return useMutation<Timetable, unknown, { id: number; data: Partial<Timetable>; }, unknown>({
+    mutationFn: updateTimetableEntry,
+    onSuccess: async (_, variables) => {
+      await queryClient.invalidateQueries({ queryKey: ['timetable', variables.id] });
+      await queryClient.invalidateQueries({ queryKey: ['timetable'] });
+    },
+  });
+};
+
+// Хук для видалення запису розкладу
+export const useDeleteTimetableEntry = (): UseMutationResult<void, unknown, number, unknown> => {
+  const queryClient = useQueryClient();
+  
+  return useMutation<void, unknown, number, unknown>({
+    mutationFn: deleteTimetableEntry,
+    onSuccess: async (data, id) => {
+      await queryClient.invalidateQueries({ queryKey: ['timetable'] });
+    },
+  });
+};
+<br>
+Схема Zod
+<br>
+import { z } from "zod";
+
+const DAYS = ['Понеділок', 'Вівторок', 'Середа', 'Четвер', "П'ятниця"] as const;
+
+export const timetableSchema = z.object({
+  time_day_of_week: z.enum(DAYS, {
+    message: `Day must be one of: ${DAYS.join(', ')}`
+  }),
+  time_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/, {
+    message: 'Time must be in HH:MM or HH:MM:SS 24-hour format'
+  }),
+  class_name: z.string().min(1, { message: 'Class name is required' }),
+  subject_name: z.string().min(1, { message: 'Subject name is required' }),
+  teacher_id: z.number().int().positive({ message: 'Teacher ID must be a positive integer' }),
+});
+<br>
+
+<h2>Демонстрація роботи </h2>
+<p>Нижче наведено скріншоти із Браузеру, які показують роботу додатку.</p>
+
 <div class="gallery">
-  <img src="Photos/get_all_students.png" alt="GET all students">
-  <img src="Photos/get_specific_student.png" alt="GET specific student">
-  <img src="Photos/post_student.png" alt="POST student">
-  <img src="Photos/put_student.png" alt="PUT student">
-  <img src="Photos/delete_student.png" alt="DELETE student">
+  <img src="Photos/1.png" alt="Entity page">
+  <img src="Photos/2.png" alt="Zod-error">
+  <img src="Photos/3.png" alt="HTML-queries in DevTools">
+  <img src="Photos/tanstack.png" alt="Tanstack just in case">
 </div>
 
-<h3>Об’єкт Journal</h3>
-<div class="gallery">
-  <img src="Photos/get_all_journal.png" alt="GET all journal">
-  <img src="Photos/get_specific_journal.png" alt="GET specific journal">
-  <img src="Photos/post_journal.png" alt="POST journal">
-  <img src="Photos/put_journal.png" alt="PUT journal">
-  <img src="Photos/delete_journal.png" alt="DELETE journal">
-  <img src="Photos/delete_journal_check.png" alt="DELETE journal confirmation">
-</div>
+<br>
+<h1>Висновок</h1>
+<p>На протязі цієї лабораторної роботи, я навчився як це бути Full-stack developer. Дізнався про хуки, Zod схеми як валідацію та створення CRUD запитів з-за допомогою TanStack Router.</p>

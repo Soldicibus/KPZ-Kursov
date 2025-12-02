@@ -1,7 +1,7 @@
 
 <h1>Workshop 10 — Робота з Dockerfile та Docker Compose</h1>
 
-<h2>Мета</h2>h2>
+<h2>Мета</h2>
 <p>Навчитися працювати з директивами Dockerfile і запускати багатосервісний застосунок (Flask + Redis) за допомогою Docker Compose.</p>
 
 

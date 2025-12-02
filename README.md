@@ -9,5 +9,5 @@
 ## ПР-7 "Дослідження бойлерплейту фронтенд-додатку" <br>
 ## ПР-8-9 "Full-stack інтеграція: розробка UI на базі професійного бойлерплейту": <a href="https://github.com/Soldicibus/KPZ-Kursov/blob/main/8-9%20work/workshop_8.md">Посилання</a> <br>
 ## ПР-10 "Робота з Dockerfile та Docker Compose" <a href="https://github.com/Soldicibus/KPZ-Kursov/blob/main/10%20work/workshop_10.md">Посилання</a>
-## ПР-11 "Неперервна інтеграція" <a href="https://github.com/Soldicibus/KPZ-Kursov/blob/main/11-12%20work/workshop11.md">Посилання</a>
+## ПР-11 "Неперервна інтеграція" <a href="https://github.com/Soldicibus/KPZ-Kursov/blob/main/11-12%20work/workflow11.md">Посилання</a>
 ## ПР-12 "Неперервна доставка" <a href="https://github.com/Soldicibus/KPZ-Kursov/blob/main/11-12%20work/workflow_1112.md">Посилання</a> <br> <a href="https://github.com/Soldicibus/custom-docker-frontend">Посилання на мій репозиторій з Workflow з Packages</a>
